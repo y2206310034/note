@@ -71,4 +71,16 @@
     mvvm 主要解决了mvc 中大量的 DOM 操作使页面渲染性能降低，加载速度变慢，影响用户体验。和当 Model 频繁发生变化，
     开发者需要主动更新到 View 。
 
-#### 
+#### 说一说new Vue()在各个生命周期做了那些事
+
+1. 初始化事件处理函数（$on, $emit,$delete）,生命周期函数，里面还不能访问data，methods，computed
+2. 触发beforeCreate生命周期函数，在这个阶段一般声明不被相应的元素，一般不会用到
+3. 初始化data，computed，methods。
+4. 触发created函数，在这个阶段data，computed，methods都可以正常的访问。通常在这个阶段做一些初始化的工作，发送少量的ajax请求用于初始化，过多请求会导致页面加载慢。
+5. 判断是否有el属性，如果有，判断是否有template属性，如果有就用template属性作为模板，没有的话使用el选择器所选择元素以及所有子元素构成模板进行解析编译(如果没有el属性，当执行vm.$mount(el)才会执行).
+6. 触发beforeMount函数。
+7. 用template编译好的AST(抽象语法树),配合render函数,重新构建DOM树，并替换原有的DOM
+8. 触发mounted函数，至此当前Vue实例挂载完成。但不意味着子组件会挂载完成。这个函数通常用于ajax请求，做其他的数据交互。
+9. 当数据发生变化时候，无论哪个数据，都会触发beforeUpdate函数，然后经过VDOM 对比，diff算法，找到VDOM差异，进行局部重新渲染。之后触发updated函数，在这两个函数最好不要进行数据操作，会导致死循环。
+10.当触发vm.$destory()函数，或者组件销毁是会先后触发 beforeDestroy 和 destroyed函数。
+
